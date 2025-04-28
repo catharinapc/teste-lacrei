@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: lacrei
+          POSTGRES_PASSWORD: sua_senha_segura
+          POSTGRES_DB: lacreisaude
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U lacrei" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi --only main --no-root
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgres://lacrei:sua_senha_segura@localhost:5432/lacreisaude
+        run: poetry run python manage.py migrate
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://lacrei:sua_senha_segura@localhost:5432/lacreisaude
+        run: poetry run pytest
