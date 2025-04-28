@@ -13,14 +13,14 @@ services:
       - db_data:/var/lib/postgresql/data
   web:
     build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             gunicorn lacreisaude.wsgi:application --bind 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && gunicorn lacreisaude.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
       - db
+    environment:
+      - DATABASE_URL=postgres://lacrei:sua_senha_segura@db:5432/lacreisaude
 volumes:
   db_data:
